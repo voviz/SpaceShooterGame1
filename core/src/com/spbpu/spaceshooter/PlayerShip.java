@@ -35,6 +35,7 @@ public class PlayerShip extends Ship {
 
     public int getLives() {
         return lives;
+
     }
 
     public void setLives(int lives) {
