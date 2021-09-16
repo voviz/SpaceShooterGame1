@@ -122,7 +122,6 @@ public class Tests {
     Vector2 directionVector = new Vector2(0,-1);
     @Test
     public void getVector() {
-
         assertEquals(directionVector, enemyShip.getDirectionVector());
     }
 
