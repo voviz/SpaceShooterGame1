@@ -30,36 +30,31 @@ import java.util.Locale;
 
 class GameScreen implements Screen {
 
-    //Screen
-    private Camera camera;
-    private Viewport viewport;
-    private Game game;
+    private final Camera camera;
+    private final Viewport viewport;
 
-    //graphics
-    private SpriteBatch batch;
-    private TextureAtlas textureAtlas;
-    private TextureRegion background, playerShipTextureRegion, enemyShipTextureRegion,
-            playerLaserTextureRegion, enemyLaserTextureRegion,
-    mediumMeteorTextureRegion, bigMeteorTextureRegion, enemyShieldTextureRegion, playerShieldTextureRegion;
-    private Texture explosionTexture;
-    private Image playAgain;
+    private final SpriteBatch batch;
+    private final TextureRegion background;
+    private final TextureRegion enemyShipTextureRegion;
+    private final TextureRegion enemyLaserTextureRegion;
+    private final TextureRegion enemyShieldTextureRegion;
+    private final Texture explosionTexture;
 
 
-    //World parameters
+
     private final float WORLD_WIDTH = 72;
     private final float WORLD_HEIGHT = 128;
-    private final float TOUCH_MOVEMENT_THRESHOLD = 0.5f;
     private float timeBetweenEnemySpawns = 3f;
     private float enemySpawnTimer = 0;
     private boolean gameOver = false;
     private float timeSinceDeath = 0;
 
-    //game objects
-    private PlayerShip playerShip;
-    private LinkedList<EnemyShip> enemyShipList;
-    private LinkedList<Laser> playerLaserList;
-    private LinkedList<Laser> enemyLaserList;
-    private LinkedList<Explosion> explosionList;
+
+    private final PlayerShip playerShip;
+    private final LinkedList<EnemyShip> enemyShipList;
+    private final LinkedList<Laser> playerLaserList;
+    private final LinkedList<Laser> enemyLaserList;
+    private final LinkedList<Explosion> explosionList;
 
     private int score = 0;
 
@@ -69,21 +64,18 @@ class GameScreen implements Screen {
     float hudVerticalMargin, hudLeftX, hudRightX, hudCentreX, hudRow1Y, hudRow2Y, hudSectionWidth;
     float gameOverX, gameOverY, gameOverSectionWidth;
 
-    GameScreen(Game game) {
-        this.game = game;
+    GameScreen() {
         camera = new OrthographicCamera();
         viewport = new StretchViewport(WORLD_WIDTH, WORLD_HEIGHT,  camera);
-        textureAtlas = new TextureAtlas("images.atlas");
+        TextureAtlas textureAtlas = new TextureAtlas("images.atlas");
         background = textureAtlas.findRegion("darkPurple");
-        playerShipTextureRegion = textureAtlas.findRegion("playerShip2_green");
+        TextureRegion playerShipTextureRegion = textureAtlas.findRegion("playerShip2_green");
         enemyShipTextureRegion = textureAtlas.findRegion("enemyRed1");
-        playerLaserTextureRegion = textureAtlas.findRegion("laserGreen08");
+        TextureRegion playerLaserTextureRegion = textureAtlas.findRegion("laserGreen08");
         enemyLaserTextureRegion = textureAtlas.findRegion("laserRed03");
-        mediumMeteorTextureRegion = textureAtlas.findRegion("playerShip2_green");
-        bigMeteorTextureRegion = textureAtlas.findRegion("playerShip2_green");
         enemyShieldTextureRegion = textureAtlas.findRegion("shield3");
         enemyShieldTextureRegion.flip(false, true);
-        playerShieldTextureRegion = textureAtlas.findRegion("shield2");
+        TextureRegion playerShieldTextureRegion = textureAtlas.findRegion("shield2");
 
         explosionTexture = new Texture("explosion.png");
 
@@ -154,16 +146,14 @@ class GameScreen implements Screen {
         batch.begin();
         batch.draw(background, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
         if (!gameOver) {
-            detectInput(deltaTime);
+            Controller.detectInput(deltaTime, playerShip, WORLD_WIDTH, WORLD_HEIGHT, viewport);
 
             playerShip.update(deltaTime);
             playerShip.draw(batch);
 
             spawnEnemyShips(deltaTime);
 
-            ListIterator<EnemyShip> enemyShipListIterator = enemyShipList.listIterator();
-            while (enemyShipListIterator.hasNext()){
-                EnemyShip enemyShip = enemyShipListIterator.next();
+            for (EnemyShip enemyShip : enemyShipList) {
                 moveEnemy(enemyShip, deltaTime);
                 enemyShip.update(deltaTime);
                 enemyShip.draw(batch);
@@ -227,56 +217,6 @@ class GameScreen implements Screen {
                     0.3f, 5, 55, 0.8f,
                     enemyShipTextureRegion, enemyShieldTextureRegion, enemyLaserTextureRegion));
             enemySpawnTimer -= timeBetweenEnemySpawns;
-        }
-    }
-
-    private void detectInput(float deltaTime) {
-        float leftLimit, rightLimit, upLimit, downLimit;
-        leftLimit = -playerShip.boundingBox.x;
-        downLimit = -playerShip.boundingBox.y;
-        rightLimit = WORLD_WIDTH - playerShip.boundingBox.x - playerShip.boundingBox.width;
-        upLimit = WORLD_HEIGHT /2 - playerShip.boundingBox.y - playerShip.boundingBox.height;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && rightLimit > 0) {
-            playerShip.translate(Math.min(playerShip.movementSpeed * deltaTime, rightLimit), 0f);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) && upLimit > 0) {
-            playerShip.translate(0f, Math.min(playerShip.movementSpeed * deltaTime, upLimit));
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && leftLimit < 0) {
-            playerShip.translate(Math.max(-playerShip.movementSpeed * deltaTime, leftLimit),0f);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && downLimit < 0) {
-            playerShip.translate(0f, Math.max(-playerShip.movementSpeed * deltaTime, downLimit));
-        }
-
-        if (Gdx.input.isTouched()) {
-            float xTouchPixels = Gdx.input.getX();
-            float yTouchPixels = Gdx.input.getY();
-
-            Vector2 touchPoint = new Vector2(xTouchPixels, yTouchPixels);
-            touchPoint = viewport.unproject(touchPoint);
-
-            Vector2 playerShipCentre = new Vector2(
-                    playerShip.boundingBox.x + playerShip.boundingBox.width / 2,
-                    playerShip.boundingBox.y + playerShip.boundingBox.height /2
-            );
-            float touchDistance = touchPoint.dst(playerShipCentre);
-
-            if (touchDistance > TOUCH_MOVEMENT_THRESHOLD) {
-                float xTouchDifference  = touchPoint.x - playerShipCentre.x;
-                float yTouchDifference  = touchPoint.y - playerShipCentre.y;
-
-                float xMove = xTouchDifference / touchDistance * playerShip.movementSpeed * deltaTime;
-                float yMove = yTouchDifference / touchDistance * playerShip.movementSpeed * deltaTime;
-
-                if (xMove > 0) xMove = Math.min(xMove, rightLimit);
-                else xMove = Math.max(xMove, leftLimit);
-                if (yMove > 0) yMove = Math.min(yMove, upLimit);
-                else yMove = Math.max(yMove, downLimit);
-
-                playerShip.translate(xMove, yMove);
-            }
         }
     }
 
@@ -354,9 +294,7 @@ class GameScreen implements Screen {
             Laser[] lasers = playerShip.fireLasers();
             playerLaserList.addAll(Arrays.asList(lasers));
         }
-        ListIterator<EnemyShip> enemyShipListIterator = enemyShipList.listIterator();
-        while (enemyShipListIterator.hasNext()) {
-            EnemyShip enemyShip = enemyShipListIterator.next();
+        for (EnemyShip enemyShip : enemyShipList) {
             if (enemyShip.canFireLaser()) {
                 Laser[] lasers = enemyShip.fireLasers();
                 enemyLaserList.addAll(Arrays.asList(lasers));
@@ -409,4 +347,5 @@ class GameScreen implements Screen {
     @Override
     public void dispose() {
     }
+
 }

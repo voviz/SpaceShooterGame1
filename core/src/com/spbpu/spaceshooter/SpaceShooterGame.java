@@ -8,12 +8,11 @@ public class SpaceShooterGame extends Game {
 
 	GameScreen gameScreen;
 
-	private Game game;
 	public static Random random = new Random();
 
 	@Override
 	public void create() {
-		gameScreen = new GameScreen(game);
+		gameScreen = new GameScreen();
 		setScreen(gameScreen);
 	}
 
@@ -25,7 +24,6 @@ public class SpaceShooterGame extends Game {
 	@Override
 	public void render() {
 		super.render();
-
 	}
 
 	@Override

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class Tests {
 
 
-    private TextureAtlas textureAtlas;
+    private TextureAtlas textureAtlas = new TextureAtlas("images.atlas");
     private TextureRegion playerLaserTextureRegion = textureAtlas.findRegion("laserGreen08");
     private TextureRegion playerShipTextureRegion = textureAtlas.findRegion("playerShip2_green");
     private TextureRegion playerShieldTextureRegion = textureAtlas.findRegion("shield2");
